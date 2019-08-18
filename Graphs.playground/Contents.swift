@@ -148,3 +148,178 @@ extension AdjacencyList: Graphable {
     }
     
 }
+
+// Linked List
+// TODO - Move this linked list code to a data structure playground
+
+public class Node<T> {
+    
+    var value: T
+    var next: Node<T>?
+    weak var previous: Node<T>?
+    
+    init(value: T) {
+        self.value = value
+    }
+    
+}
+
+public class LinkedList<T> {
+    
+    fileprivate var head: Node<T>?
+    private var tail: Node<T>?
+    
+    public var isEmpty: Bool {
+        return head == nil
+    }
+    
+    public var first: Node<T>? {
+        return head
+    }
+    
+    public var last: Node<T>? {
+        return tail
+    }
+    
+    public func append(value: T) {
+        let newNode = Node(value: value)
+        if let tailNode = tail {
+            newNode.previous = tailNode
+            tailNode.next = newNode
+        } else {
+            head = newNode
+        }
+        tail = newNode
+    }
+    
+    public func nodeAt(index: Int) -> Node<T>? {
+        if index >= 0 {
+            var node = head
+            var i = index
+            while node != nil {
+                if i == 0 {
+                    return node
+                }
+                i -= 1
+                node = node!.next
+            }
+        }
+        return nil
+    }
+    
+    public func removeAll() {
+        head = nil
+        tail = nil
+    }
+    
+    public func remove(node: Node<T>) -> T {
+        let previous = node.previous
+        let next = node.next
+        if let previous = previous {
+            previous.next = next
+        } else {
+            head = next
+        }
+        next?.previous = previous
+        if next == nil {
+            tail = previous
+        }
+        node.previous = nil
+        node.next = nil
+        return node.value
+    }
+    
+}
+
+extension LinkedList: CustomStringConvertible {
+    
+    public var description: String {
+        var text = "["
+        var node = head
+        while node != nil {
+            text += "\(String(describing: node!.value))"
+            node = node!.next
+            if node != nil {
+                text += ", "
+            }
+        }
+        return text + "]"
+    }
+    
+}
+
+// Queue
+// TODO - Move this queue code to a data structure playground
+
+public struct Queue<T> {
+    
+    fileprivate var list = LinkedList<T>()
+    
+    public mutating func enqueue(_ element: T) {
+        list.append(value: element)
+    }
+    
+    public mutating func dequeue() -> T? {
+        guard !list.isEmpty,
+            let element = list.first else {
+            return nil
+        }
+        list.remove(node: element)
+        return element.value
+    }
+    
+    public func peek() -> T? {
+        return list.first?.value
+    }
+    
+    public var isEmpty: Bool {
+        return list.isEmpty
+    }
+    
+}
+
+extension Queue: CustomStringConvertible {
+    
+    public var description: String {
+        return list.description
+    }
+    
+}
+
+// BFS
+
+enum Visit<Element: Hashable> {
+    case source
+    case edge(Edge<Element>)
+}
+
+extension Graphable {
+    
+    public func breadthFirstSearch(from source: Vertex<Element>, to destination: Vertex<Element>) -> [Edge<Element>]? {
+        var queue = Queue<Vertex<Element>>()
+        queue.enqueue(source)
+        var visits: [Vertex<Element>: Visit<Element>] = [source: .source]
+        while let visitedVertex = queue.dequeue() {
+            if visitedVertex == destination {
+                var vertex = destination
+                var route: [Edge<Element>] = []
+                while let visit = visits[vertex],
+                    case .edge(let edge) = visit {
+                        route = [edge] + route
+                        vertex = edge.source
+                        
+                }
+                return route
+            }
+            let neighbourEdges = edges(from: visitedVertex) ?? []
+            for edge in neighbourEdges {
+                if visits[edge.destination] == nil {
+                    queue.enqueue(edge.destination)
+                    visits[edge.destination] = .edge(edge)
+                }
+            }
+        }
+        return nil
+    }
+    
+}
