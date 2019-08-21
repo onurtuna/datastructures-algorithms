@@ -286,6 +286,46 @@ extension Queue: CustomStringConvertible {
     
 }
 
+// Stack
+// TODO - Move this queue code to a data structure playground
+
+public struct Stack<T> {
+    
+    fileprivate var array: [T] = []
+    
+    var isEmpty: Bool {
+        return array.isEmpty
+    }
+    
+    var count: Int {
+        return array.count
+    }
+    
+    mutating func push(_ element: T) {
+        array.append(element)
+    }
+    
+    mutating func pop() -> T? {
+        return array.popLast()
+    }
+    
+    func peek() -> T? {
+        return array.last
+    }
+    
+}
+
+extension Stack: CustomStringConvertible {
+    
+    public var description: String {
+        let topDivider = "---Stack---\n"
+        let bottomDivider = "\n-----------\n"
+        let stackElements = array.map { "\($0)" }.reversed().joined(separator: "\n")
+        return topDivider + stackElements + bottomDivider
+    }
+    
+}
+
 // BFS
 
 enum Visit<Element: Hashable> {
@@ -307,7 +347,6 @@ extension Graphable {
                     case .edge(let edge) = visit {
                         route = [edge] + route
                         vertex = edge.source
-                        
                 }
                 return route
             }
@@ -320,6 +359,37 @@ extension Graphable {
             }
         }
         return nil
+    }
+    
+}
+
+// DFS
+
+extension Graphable {
+    
+    func depthFirstSearch(from start: Vertex<String>, to end: Vertex<String>, graph: AdjacencyList<String>) -> Stack<Vertex<String>> {
+        var visited = Set<Vertex<String>>()
+        var stack = Stack<Vertex<String>>()
+        stack.push(start)
+        visited.insert(start)
+        outer: while let vertex = stack.peek(), vertex != end {
+            guard let neighbors = graph.edges(from: vertex), neighbors.count > 0 else {
+                print("backtrack from \(vertex)")
+                stack.pop()
+                continue
+            }
+            for edge in neighbors {
+                if !visited.contains(edge.destination) {
+                    visited.insert(edge.destination)
+                    stack.push(edge.destination)
+                    print(stack.description)
+                    continue outer
+                }
+            }
+            print("backtrack from \(vertex)")
+            stack.pop()
+        }
+        return stack
     }
     
 }
